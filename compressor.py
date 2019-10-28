@@ -1,3 +1,4 @@
+import math
 
 def encoding(filename: str):
     bit_size = 9
@@ -38,7 +39,7 @@ def encoding(filename: str):
     #print(dictionary, index, codes)
 
     for code in codes:
-        result.write(code.to_bytes((bit_size%8)+1,'big'))
+        result.write(code.to_bytes(math.floor((bit_size/8))+1,'big'))
     
     result.close()
     file.close()
