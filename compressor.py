@@ -1,6 +1,6 @@
 import math
 
-def encoding(filename: str):
+def encoding(filename: str, tam_bytes: int):
     bit_size = 9
     max_size = (1 << bit_size) - 1
     dictionary = {}
@@ -31,6 +31,13 @@ def encoding(filename: str):
 
             if index == max_size:
                 bit_size += 1
+
+            if bit_size > tam_bytes*8:
+                bit_size = 9
+                index = 256
+                dictionary = {}
+                for i in range(256):
+                    dictionary[chr(i)] = i
 
             prefix = c
     

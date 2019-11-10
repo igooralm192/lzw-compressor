@@ -2,6 +2,8 @@ import sys
 from compressor import encoding
 from descompressor import decoding
 
+BYTES = 3
+
 args = sys.argv[1:]
 
 if len(args) != 2:
@@ -10,8 +12,8 @@ if len(args) != 2:
 [mode, file] = args
 
 if mode == '-c':
-    encoding(file)
+    encoding(file, BYTES)
 elif mode == '-d':
-    decoding(file)
+    decoding(file, BYTES)
 else:
     exit(0)
