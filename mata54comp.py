@@ -2,7 +2,7 @@ import sys
 from compressor import encoding
 from descompressor import decoding
 
-BYTES = 3
+BYTES = 2
 
 args = sys.argv[1:]
 
