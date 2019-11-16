@@ -1,68 +1,75 @@
-import math
-from bytelist import ByteList
+import math, textwrap
+from helper import byteToBin, fullByte
 
-def findOnDict(bytelist, array):
-    for elem in array:
-        if elem.getList() == bytelist:
-            return elem
-    return None
-
-def findValueOnDict(integer, array):
-    for elem in array:
-        if elem.getValue() == integer:
-            return elem
-    return None
-
-def encoding(filename: str, tam_bytes: int):
-    bit_size = 9
-    max_size = (1 << bit_size) - 1
-    dictionary = []
-    for i in range(256):
-        dictionary.append(ByteList(bytes([i]), value=i))
-    
+def encoding(filename: str, tam_bits: int, max_bits: int):
+    bit_size = tam_bits+1
+    max_size = (1 << tam_bits)
+    dictionary = {}
+    for i in range(max_size):
+        dictionary[fullByte(bin(i)[2:], length=tam_bits)] = i
     
     file = open(filename, "rb")
     result = open(filename.split('.')[0]+".cmp", "wb")
-    
-    prefix = ByteList()
-    codes = []
-    index = 256
 
+    file_bits = ''
     while True:
-        c = file.read(1)
-        # print(c)
-        if not c:
+        byte = file.read(1)
+        if not byte:
             break
+        byte = byteToBin(byte, full=True)
+        file_bits += byte
 
-        p = prefix + c
+    file_bits = textwrap.wrap(file_bits, tam_bits)
 
-        find_p = findOnDict(p.getList(), dictionary)
-        if find_p != None:
-            prefix = find_p
+    prefix = ""
+    codes = []
+    index = max_size
+
+    for c in file_bits:
+        p = prefix+c
+
+        if p in dictionary:
+            prefix = p
         else:
-            codes.append(prefix.getValue())
-            p.setValue(index)
-            dictionary.append(p)
+            codes.append(dictionary[prefix])
+            dictionary[p] = index
             index += 1
 
             if index == max_size:
                 bit_size += 1
 
-            if bit_size > tam_bytes*8:
-                bit_size = 9
-                index = 256
-                dictionary = []
-                for i in range(256):
-                    dictionary.append(ByteList(bytes([i]), value=i))
+            if bit_size > max_bits:
+                bit_size = tam_bits+1
+                max_size = (1 << tam_bits)
+                dictionary = {}
+                for i in range(max_size):
+                    dictionary[fullByte(bin(i)[2:], length=tam_bits)] = i
+                index = max_size
 
-            prefix = findOnDict([c], dictionary)
+            prefix = c
     
-    codes.append(prefix.getValue())
+    codes.append(dictionary[fullByte(prefix, length=tam_bits)])
+
+    bits = ''
+    max_code = 0
+    for code in codes:
+        max_code = max(code, max_code)
+    getbit_size = len(bin(max_code)[2:])
 
     for code in codes:
-        # print(findValueOnDict(code, dictionary).getList())
-        # print(code, ' - ', findValueOnDict(code, dictionary).getList())
-        result.write(code.to_bytes(tam_bytes, 'big'))
+        code_byte = fullByte(bin(code)[2:], length=getbit_size)
+        bits += code_byte
+            
+    byte_list = textwrap.wrap(bits, 8)
+
+    result.write(getbit_size.to_bytes(1, byteorder='big'))
+
+    for byte in byte_list:
+        byteorder = 'big'
+        if len(byte) < 8:
+            byte = '1' + byte
+
+        result.write(int(byte, 2).to_bytes(1, byteorder))
     
     result.close()
     file.close()

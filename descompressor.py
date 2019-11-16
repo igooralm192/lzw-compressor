@@ -1,104 +1,100 @@
-from bytelist import ByteList
+from helper import fullByte, toInt, binToByte, toByte
+import textwrap
 
-def findOnDict(bytelist, array):
-    for elem in array:
-        if elem.getList() == bytelist:
-            return elem
-    return None
-
-def findValueOnDict(integer, array):
-    for elem in array:
-        if elem.getValue() == integer:
-            return elem
-    return None
-
-def toByte(n):
-    return int.to_bytes(n, 1, byteorder='big')
-
-def decoding(filename: str, tam_bytes: int):
-    bit_size = 9
-    max_size = (1 << bit_size) - 1
-    dictionary = []
-    for i in range(256):
-        dictionary.append(ByteList(bytes([i]), value=i))
+def decoding(filename: str, tam_bits: int, max_bits: int):
+    bit_size = tam_bits+1
+    max_size = (1 << tam_bits)
+    dictionary = {}
+    for i in range(max_size):
+        dictionary[i] = [fullByte(bin(i)[2:], length=tam_bits)]
 
     file = open(filename, "rb")
     result = open(filename.split('.')[0], "wb")
 
-    prefix = ByteList()
+    getbit_size = int.from_bytes(file.read(1), "big")
+    byte_file = ''
+
+    origin_byte = ''
+    while True:
+        byte = file.read(1)
+        if not byte:
+            break
+        
+        byte = bin(int.from_bytes(byte, "big"))[2:]
+        origin_byte = byte
+        byte = fullByte(byte)
+        byte_file += byte
+
+    byte_file = byte_file[:len(byte_file)-8] + origin_byte[1:]
+
+    byte_file = textwrap.wrap(byte_file, getbit_size)
+
+    prefix = []
     codes = []
-    index = 256
+    index = max_size
 
     i = 0
+    index_file = 0
 
-    c = file.read(tam_bytes)
-    if c:
-        c = int.from_bytes(c, "big")
-        codes.append(bytes([c]))
-        # print(c, ' - ', findValueOnDict(c, dictionary).getList())
+    if index_file < len(byte_file):
+        c = byte_file[index_file]
+        index_file += 1
+        c = dictionary[toInt(c)]
+        codes += c
 
     while True:
-        # print(i, ' ', len(codes))
-        if i >= len(codes): 
-            c = file.read(tam_bytes)
-            if c:
+        if (i >= len(codes)):
+            if index_file < len(byte_file):
+                c = byte_file[index_file]
+                index_file += 1
+                c = toByte(int(c, 2))
+
                 c_int = int.from_bytes(c, 'big')
-                find_c = findValueOnDict(c_int, dictionary)
 
-                if find_c is None:
-                    # print('find_c is None')
-                    putDict = ByteList(*(prefix.getList()), prefix.getList()[0], value=index)
-                    dictionary.append(putDict)
-
-                    c = []
-                    c += prefix.getList()
-                    c.append(prefix.getList()[0])
-                    # print(c_int, ' - ', c)
+                # c_bytes = int.from_bytes(c, "big")
+                if c_int not in dictionary:
+                    dictionary[index] = prefix + [prefix[0]]
+                    c = dictionary[index]
+                    
                     index += 1
                     codes += c
-                    prefix = ByteList(codes[i])
+                    prefix = [codes[i]]
                     i += 1
-                else:                
-                    # print(c_int, ' - ', findValueOnDict(c_int, dictionary).getList())
-                    # print('find_c not None : ', find_c.getList())
-                    # c = int.to_bytes(c_int, tam_bytes, byteorder='big')
-                    # c = [toByte(item) for item in list(c)] 
-
-                    codes += find_c.getList()
+                else:
+                    c = dictionary[c_int]
+                    codes += c
             else:
                 break
-            
 
-        p = prefix+codes[i]
-        # print('codes: ', codes)
-        # print('prefix: ', prefix.getList())
-        # print('p: ', p.getList())
-        find_p = findOnDict(p.getList(), dictionary)
+        p = prefix
+        p.append(codes[i])
 
-        if find_p != None:
-            # print('find_p != None')
-            prefix = find_p
+        if p in dictionary.values():
+            prefix = p
         else:
-            p.setValue(index)
-            dictionary.append(p)
-            # print('find_p == None : ', p.getList())
+            dictionary[index] = p
 
             index += 1
 
             if index == max_size:
                 bit_size += 1
 
-            if bit_size > tam_bytes*8:
-                bit_size = 9
-                index = 256
-                dictionary = []
-                for i in range(256):
-                    dictionary.append(ByteList(bytes([i]), value=i))
+            if bit_size > max_bits:
+                bit_size = tam_bits+1
+                dictionary = {}
+                for i in range(max_size):
+                    dictionary[fullByte(bin(i)[2:], length=tam_bits)] = i
+                index = max_size
 
-            prefix = ByteList(codes[i])
+            prefix = [codes[i]]
+        
         i += 1
 
+    codes = ''.join(codes)
+    codes = textwrap.wrap(codes, 8)
+
     for code in codes:
+        code = binToByte(code)
         result.write(code)
     
     result.close()
