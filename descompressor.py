@@ -1,24 +1,28 @@
-from helper import fullByte, toInt, binToByte, toByte
+from helper import fullByte, toInt, binToByte, toByte, byteToBin
 import textwrap
 
-def decoding(filename: str, tam_bits: int, max_bits: int):
-    bit_size = tam_bits+1
-    max_size = (1 << tam_bits)
+def decoding(filename: str):
+    file = open(filename, "rb")
+    result = open(filename.split('.')[0], "wb")
+
+    print('Analisando arquivo...')
+    config_byte_1 = byteToBin(file.read(1), full=True)
+    config_byte_2 = byteToBin(file.read(1), full=True)
+
+    tam_bits = toInt(config_byte_1[:5])
+    max_bits = toInt(config_byte_1[5:] + config_byte_2[:2])
+    getbit_size = toInt(config_byte_2[2:7])
 
     print('Gerando dicionario...')
+    bit_size = tam_bits+1
+    max_size = (1 << tam_bits)
     dictionary = {}
     rev_dict = {}
     for i in range(max_size):
         dictionary[i] = [fullByte(bin(i)[2:], length=tam_bits)]
         rev_dict[fullByte(bin(i)[2:], length=tam_bits)] = i
 
-    file = open(filename, "rb")
-    result = open(filename.split('.')[0], "wb")
-
-    print('Analisando arquivo...')
-    getbit_size = int.from_bytes(file.read(1), "big")
     file_bits = ''
-
     origin_byte = ''
     while True:
         byte = file.read(1)

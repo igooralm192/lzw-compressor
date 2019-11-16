@@ -1,16 +1,4 @@
 import math
-
-def findOnDict(bytelist, array):
-    for elem in array:
-        if elem.getList() == bytelist:
-            return elem
-    return None
-
-def findValueOnDict(integer, array):
-    for elem in array:
-        if elem.getValue() == integer:
-            return elem
-    return None
     
 def toByte(n):
     return int.to_bytes(n, math.ceil(n/255), byteorder='big')
@@ -60,3 +48,15 @@ class ByteList:
 
     def getValue(self):
         return self.value
+        
+def findOnDict(bytelist, array):
+    for elem in array:
+        if elem.getList() == bytelist:
+            return elem
+    return None
+
+def findValueOnDict(integer, array):
+    for elem in array:
+        if elem.getValue() == integer:
+            return elem
+    return None
