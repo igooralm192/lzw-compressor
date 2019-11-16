@@ -27,14 +27,10 @@ def byteToBin(byte, full=False):
         binary = fullByte(binary)
     return binary
 
-def fullByte(binary, reverse=False, length=8):
+def fullByte(binary, length=8):
     rest = length - len(binary)
-    if reverse:
-        for i in range(rest):        
-            binary += '0'
-    else:
-        for i in range(rest):
-            binary = '0' + binary
+    zeros = '0' * rest
+    binary = zeros + binary
     return binary
 
 class ByteList:

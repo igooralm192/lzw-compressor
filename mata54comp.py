@@ -2,19 +2,26 @@ import sys
 from compressor import encoding
 from descompressor import decoding
 
-BITS = 2
-MAX_BITS = 8
+TEMP_FILE_BITS = ''
 
-args = sys.argv[1:]
+min_range = 2
+max_range = 21
+for i in range(min_range, max_range):
+    print('Teste ', i)
+    BITS = i
+    MAX_BITS = i+i
 
-if len(args) != 2:
-    exit(0)
+    args = sys.argv[1:]
 
-[mode, file] = args
+    if len(args) != 2:
+        exit(0)
 
-if mode == '-c':
-    encoding(file, BITS, MAX_BITS)
-elif mode == '-d':
-    decoding(file, BITS, MAX_BITS)
-else:
-    exit(0)
+    [mode, file] = args
+
+    if mode == '-c':
+        encoding(file, BITS, MAX_BITS)
+    elif mode == '-d':
+        decoding(file, BITS, MAX_BITS)
+    else:
+        exit(0)
+    print()

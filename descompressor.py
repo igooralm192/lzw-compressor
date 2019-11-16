@@ -4,15 +4,20 @@ import textwrap
 def decoding(filename: str, tam_bits: int, max_bits: int):
     bit_size = tam_bits+1
     max_size = (1 << tam_bits)
+
+    print('Gerando dicionario...')
     dictionary = {}
+    rev_dict = {}
     for i in range(max_size):
         dictionary[i] = [fullByte(bin(i)[2:], length=tam_bits)]
+        rev_dict[fullByte(bin(i)[2:], length=tam_bits)] = i
 
     file = open(filename, "rb")
     result = open(filename.split('.')[0], "wb")
 
+    print('Analisando arquivo...')
     getbit_size = int.from_bytes(file.read(1), "big")
-    byte_file = ''
+    file_bits = ''
 
     origin_byte = ''
     while True:
@@ -23,11 +28,16 @@ def decoding(filename: str, tam_bits: int, max_bits: int):
         byte = bin(int.from_bytes(byte, "big"))[2:]
         origin_byte = byte
         byte = fullByte(byte)
-        byte_file += byte
+        file_bits += byte
 
-    byte_file = byte_file[:len(byte_file)-8] + origin_byte[1:]
+    if origin_byte.find('1') != -1:
+        file_bits = file_bits[:len(file_bits)-8] + origin_byte[1:]
 
-    byte_file = textwrap.wrap(byte_file, getbit_size)
+    # byte_file = textwrap.wrap(file_bits, getbit_size)
+    import math
+    byte_file = []
+    for i in range(math.ceil(len(file_bits) / getbit_size)):
+        byte_file.append(file_bits[i*getbit_size:i*getbit_size+getbit_size])
 
     prefix = []
     codes = []
@@ -36,6 +46,7 @@ def decoding(filename: str, tam_bits: int, max_bits: int):
     i = 0
     index_file = 0
 
+    print('Descomprimindo...')
     if index_file < len(byte_file):
         c = byte_file[index_file]
         index_file += 1
@@ -55,6 +66,7 @@ def decoding(filename: str, tam_bits: int, max_bits: int):
                 if c_int not in dictionary:
                     dictionary[index] = prefix + [prefix[0]]
                     c = dictionary[index]
+                    rev_dict[''.join(dictionary[index])] = index
                     
                     index += 1
                     codes += c
@@ -69,10 +81,11 @@ def decoding(filename: str, tam_bits: int, max_bits: int):
         p = prefix
         p.append(codes[i])
 
-        if p in dictionary.values():
+        if ''.join(p) in rev_dict:
             prefix = p
         else:
             dictionary[index] = p
+            rev_dict[''.join(p)] = index
 
             index += 1
 
@@ -82,20 +95,29 @@ def decoding(filename: str, tam_bits: int, max_bits: int):
             if bit_size > max_bits:
                 bit_size = tam_bits+1
                 dictionary = {}
+                rev_dict = {}
                 for i in range(max_size):
-                    dictionary[fullByte(bin(i)[2:], length=tam_bits)] = i
+                    dictionary[i] = [fullByte(bin(i)[2:], length=tam_bits)]
+                    rev_dict[fullByte(bin(i)[2:], length=tam_bits)] = i
                 index = max_size
 
             prefix = [codes[i]]
         
         i += 1
 
+    print('Configurando saida...')
     codes = ''.join(codes)
-    codes = textwrap.wrap(codes, 8)
 
-    for code in codes:
-        code = binToByte(code)
-        result.write(code)
+    if len(codes) < len(file_bits):
+        codes = file_bits
+
+    # codes = textwrap.wrap(codes, 8)
+
+    print('Imprimindo...')
+    import math
+    for i in range(math.ceil(len(codes) / 8)):
+        code = codes[i*8:i*8+8]
+        result.write(binToByte(code))
     
     result.close()
     file.close()
