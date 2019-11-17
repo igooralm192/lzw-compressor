@@ -5,7 +5,6 @@ def decoding(filename: str):
     file = open(filename, "rb")
     result = open(filename.split('.')[0], "wb")
 
-    print('Analisando arquivo...')
     config_byte_1 = byteToBin(file.read(1), full=True)
     config_byte_2 = byteToBin(file.read(1), full=True)
 
@@ -13,7 +12,6 @@ def decoding(filename: str):
     max_bits = toInt(config_byte_1[5:] + config_byte_2[:2])
     getbit_size = toInt(config_byte_2[2:7])
 
-    print('Gerando dicionario...')
     bit_size = tam_bits+1
     max_size = (1 << tam_bits)
     dictionary = {}
@@ -37,7 +35,6 @@ def decoding(filename: str):
     if origin_byte.find('1') != -1:
         file_bits = file_bits[:len(file_bits)-8] + origin_byte[1:]
 
-    # byte_file = textwrap.wrap(file_bits, getbit_size)
     import math
     byte_file = []
     for i in range(math.ceil(len(file_bits) / getbit_size)):
@@ -50,7 +47,6 @@ def decoding(filename: str):
     i = 0
     index_file = 0
 
-    print('Descomprimindo...')
     if index_file < len(byte_file):
         c = byte_file[index_file]
         index_file += 1
@@ -66,7 +62,6 @@ def decoding(filename: str):
 
                 c_int = int.from_bytes(c, 'big')
 
-                # c_bytes = int.from_bytes(c, "big")
                 if c_int not in dictionary:
                     dictionary[index] = prefix + [prefix[0]]
                     c = dictionary[index]
@@ -109,15 +104,11 @@ def decoding(filename: str):
         
         i += 1
 
-    print('Configurando saida...')
     codes = ''.join(codes)
 
     if len(codes) < len(file_bits):
         codes = file_bits
 
-    # codes = textwrap.wrap(codes, 8)
-
-    print('Imprimindo...')
     import math
     for i in range(math.ceil(len(codes) / 8)):
         code = codes[i*8:i*8+8]

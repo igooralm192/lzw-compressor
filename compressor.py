@@ -2,7 +2,6 @@ import math, textwrap
 from helper import byteToBin, fullByte, binToByte
 
 def encoding(file_bits: str, tam_bits: int, max_bits: int, len_temp_file: int):
-    print('Gerando dicionario...')
     bit_size = tam_bits+1
     max_size = (1 << tam_bits)
     dictionary = {}
@@ -13,7 +12,6 @@ def encoding(file_bits: str, tam_bits: int, max_bits: int, len_temp_file: int):
     codes = []
     index = max_size
 
-    print('Comprimindo...')
     max_original_code = 0
 
     for i in range(math.ceil(len(file_bits) / tam_bits)):
@@ -44,7 +42,6 @@ def encoding(file_bits: str, tam_bits: int, max_bits: int, len_temp_file: int):
     
     codes.append(dictionary[fullByte(prefix, length=tam_bits)])
 
-    print('Configurando saida...')
     bits = ''
     max_code = 0
     
@@ -57,14 +54,8 @@ def encoding(file_bits: str, tam_bits: int, max_bits: int, len_temp_file: int):
         bits += code_byte
     
     if len(bits) > len(file_bits):
-        print('Taxa de compressao: 0%')
         bits = file_bits
-        # codes = textwrap.wrap(bits, tam_bits)
         getbit_size = len(bin(max_original_code)[2:])
-    else:
-        taxa = 1-(len(bits)/len(file_bits))
-        taxa *= 100
-        print('Taxa de compressao: ', taxa, '%')
 
     if len_temp_file > len(bits) or len_temp_file == 0:
         return True, [bits, fullByte(bin(tam_bits)[2:])[3:], fullByte(bin(max_bits)[2:])[3:], fullByte(bin(getbit_size)[2:])[3:]]

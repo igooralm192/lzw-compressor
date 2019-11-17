@@ -1,9 +1,7 @@
-import sys, math, time
+import sys, math
 from compressor import encoding
 from descompressor import decoding
 from helper import byteToBin, binToByte
-
-start_time = time.time()
 
 TEMP_FILE_BITS = ''
 TEMP_TAM_BITS = ''
@@ -23,7 +21,6 @@ if mode == '-c':
     
     file = open(filename, "rb")
 
-    print('Analisando arquivo...')
     file_bits = ''
     while True:
         byte = file.read(1)
@@ -33,23 +30,17 @@ if mode == '-c':
         file_bits += byte
 
     for i in range(min_range, max_range):
-        print('Teste ', i)
-        
         BITS = i
         MAX_BITS = min(i+i, 24)
 
         bits_to_temp, config = encoding(file_bits, BITS, MAX_BITS, len(TEMP_FILE_BITS))
         if (bits_to_temp):
             [TEMP_FILE_BITS, TEMP_TAM_BITS, TEMP_MAX_BITS, TEMP_GET_BIT_SIZE] = config
-        print()
 
     file.close()
     result = open(filename.split('.')[0]+".cmp", "wb")
 
-    print([int(TEMP_TAM_BITS, 2), int(TEMP_MAX_BITS, 2)])
-    print('Imprimindo...')
     config = TEMP_TAM_BITS + TEMP_MAX_BITS + TEMP_GET_BIT_SIZE + '0'
-    print(config)
     for i in range(2):
         byte = config[i*8:i*8+8]
         result.write(binToByte(byte))
@@ -62,9 +53,5 @@ if mode == '-c':
             byte = '1' + byte
 
         result.write(int(byte, 2).to_bytes(1, byteorder))
-    print('Compressao concluida!')
 elif mode == '-d':
     decoding(filename)
-
-end_time = time.time()
-print("Total execution time: {}".format(end_time - start_time))
