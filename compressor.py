@@ -43,9 +43,10 @@ def encoding(file_bits: str, tam_bits: int, max_bits: int, len_temp_file: int):
             prefix = c
     
     codes.append(dictionary[fullByte(prefix, length=tam_bits)])
+
     bits = ''
     max_code = 0
-
+    
     # Encontra o maior valor da tabela usado para compressão e guarda o tamanho dos bits dele (getbit_size)
     for code in codes:
         max_code = max(code, max_code)
@@ -60,7 +61,7 @@ def encoding(file_bits: str, tam_bits: int, max_bits: int, len_temp_file: int):
     if len(bits) > len(file_bits):
         bits = file_bits
         getbit_size = len(bin(max_original_code)[2:])
-        
+
     # Verifica se o .cmp gerado até então pelos testes é maior que o do teste atual. Se sim, os parametros são atualizados.
     # Vale lembrar que o .cmp final será o menor gerado pelos testes de compressão
     if len_temp_file > len(bits) or len_temp_file == 0:

@@ -25,3 +25,10 @@ def fullByte(binary, length=8):
     zeros = '0' * rest
     binary = zeros + binary
     return binary
+
+def notFullByte(binary: str, length=0):
+    if length != 0:
+        return binary[-length:]
+
+    firstBit1 = binary.find('1')
+    return binary[firstBit1:]
