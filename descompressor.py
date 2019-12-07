@@ -19,7 +19,8 @@ def decoding(filename: str):
     qnt_zero = 0
     if config_byte_2[-1:] == '1':
         last_byte_zero = True
-    qnt_zero = toInt(config_byte_3)
+    qnt_zero = toInt(config_byte_3[:4])
+    qnt_zero_original = toInt(config_byte_3[4:])
 
     bit_size = tam_bits+1
     max_size = (1 << tam_bits)
@@ -51,7 +52,7 @@ def decoding(filename: str):
         file_bits = file_bits[:len(file_bits)-8] + zeros
     else:
         file_bits = file_bits[:len(file_bits)-8] + zeros + origin_byte
-    
+
     # Verifica se a compressão enviou o arquivo original como sendo descomprimido. Se sim 
     # (ultimo byte dos parametros igual a 0, agora com 4 bytes), significa que no .cmp está guardado o 
     # arquivo original e esse é escrito novamente no novo arquivo gerado pela descompressão.
@@ -67,7 +68,7 @@ def decoding(filename: str):
         prefix = []
         codes = []
         index = max_size
-        c = []
+
         i = 0
         index_file = 0
 
@@ -98,12 +99,10 @@ def decoding(filename: str):
                         i += 1
                     else:
                         dict_c_int = dictionary[c_int]
-                        
                         if index_file == len(byte_file):
-                            for j in range(len(dict_c_int)):
-                                if (dict_c_int[j].find('1') != -1):
-                                    no_bit0 = notFullByte(dict_c_int[j])
-                                    dict_c_int[j] = fullByte(no_bit0, length=(tam_bits))
+                            if (dict_c_int[-1].find('1') != -1):
+                                no_bit0 = notFullByte(dict_c_int[-1])
+                                dict_c_int[len(dict_c_int)-1] = fullByte(no_bit0, length=(len(no_bit0)+qnt_zero_original))
 
                         c = dict_c_int
                         codes += c

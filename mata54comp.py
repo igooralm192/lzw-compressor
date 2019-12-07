@@ -3,7 +3,7 @@
 import sys, math
 from compressor import encoding
 from descompressor import decoding
-from helper import byteToBin, binToByte, fullByte, toInt
+from helper import byteToBin, binToByte, fullByte
 
 # Variaveis para guardar os bits do arquivo .cmp a ser gerado e os parametros
 # descritos no relatorio para cada teste a ser feito na compressao
@@ -32,7 +32,7 @@ if mode == '-c':
             break
         byte = byteToBin(byte, full=True)
         file_bits += byte
-        
+
     for i in range(min_range, max_range):
         BITS = i
         MAX_BITS = min(i+i, 24)
@@ -62,8 +62,13 @@ if mode == '-c':
         config = config[:len(config)-1] + '1'
     else:
         qnt_zero = byte.find('1')
-
-    config += fullByte(bin(qnt_zero)[2:])
+        
+    config += fullByte(bin(qnt_zero)[2:], length=4)
+    if file_bits[-8:].find('1') == -1:
+        config += fullByte(bin(0)[2:], length=4)
+    else:
+        config += fullByte(bin(file_bits[-8:].find('1'))[2:], length=4)
+    
     if file_bits == TEMP_FILE_BITS:
         config += fullByte(bin(1)[2:])
     else:
